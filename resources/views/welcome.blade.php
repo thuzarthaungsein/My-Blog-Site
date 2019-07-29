@@ -88,7 +88,7 @@
                 @guest
                     <a href="{{ route('login') }}">Login Here</a>
                 @else
-                    <a href="#">Welcome</a>
+                    <a href='{{ url("/posts") }}'>Welcome</a>
                 @endguest
                 </div>
 

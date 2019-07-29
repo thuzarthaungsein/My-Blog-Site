@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Post;
+use App\Category;
+use App\Comment;
 use Auth;
 
 class PostController extends Controller
@@ -22,7 +24,8 @@ class PostController extends Controller
     public function index()
     {
         $posts = Post::select('*')->orderBy('id','DESC')->paginate(4);
-        return view('posts.index', compact('posts'));
+        $total = Post::all()->count();
+        return view('posts.index', compact('posts','total'));
     }
 
     /**
@@ -32,7 +35,8 @@ class PostController extends Controller
      */
     public function create()
     {
-        return view('posts.create');
+        $categories = Category::all();
+        return view('posts.create', compact('categories'));
     }
 
     /**
@@ -51,16 +55,18 @@ class PostController extends Controller
         $post = new Post();
         $post->title = $request->title;
         $post->body = $request->body;
-        $post->userid = Auth::user()->id;
-        $post->categoryid = 3;
+        $post->user_id = Auth::user()->id;
+        $post->category_id = $request->categoryid;
 
         $post->save();
 
         $posts = Post::select('*')->orderBy('id','DESC')->paginate(4);
+        $categories = Category::all();
+        $total = Post::all()->count();
 
         // Post::create($validate);
 
-        return view('posts.index', compact('posts'))->with('success','Successfully Posted.');
+        return view('posts.index', compact('posts','categories','total'))->with('success','Successfully Posted.');
     }
 
     /**
@@ -71,7 +77,12 @@ class PostController extends Controller
      */
     public function show($id)
     {
-        //
+        $post = Post::find($id);
+        $categories = Category::all();
+        $comments = Comment::select('*')->where('post_id',$id)->paginate(3);
+        $totalcmt = Comment::select('*')->where('post_id',$id)->count();
+        // print_r($totalcmt);die();
+        return view('posts.view', compact('post','categories','comments','totalcmt'));
     }
 
     /**
@@ -82,8 +93,10 @@ class PostController extends Controller
      */
     public function edit($id)
     {
+        // print_r($id);die();
         $post = Post::find($id);
-        return view('posts.edit', compact('post'));
+        $categories = Category::all();
+        return view('posts.edit', compact('post','categories'));
     }
 
     /**
@@ -95,7 +108,26 @@ class PostController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $validate = $request->validate([
+            'title' => 'required|max:255',
+            'body'  => 'required',
+        ]);
+
+        $post = Post::find($id);
+        $post->title = $request->title;
+        $post->body = $request->body;
+        $post->user_id = Auth::user()->id;
+        $post->category_id = $request->categoryid;
+
+        $post->save();
+
+        $posts = Post::select('*')->orderBy('id','DESC')->paginate(4);
+        $categories = Category::all();
+        $total = Post::all()->count();
+
+        // Post::create($validate);
+
+        return view('posts.index', compact('posts','categories','total'))->with('success','Successfully Posted.');
     }
 
     /**
@@ -106,6 +138,9 @@ class PostController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $delpost = Post::find($id);
+        $delpost->delete();
+
+        return redirect('/posts')->with('info', 'Delete Successful.');
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Comment;
+use Auth;
 
 class CommentController extends Controller
 {
@@ -32,9 +34,23 @@ class CommentController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, $id)
     {
-        //
+        $validator = validator(request()->all(), [
+            'comment' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator);
+        }
+
+        $comment = new Comment();
+        $comment->post_id = $id;
+        $comment->comment = $request->comment;
+        $comment->user_id = Auth::user()->id;
+
+        $comment->save();
+        return back()->with('info','Success');
     }
 
     /**
@@ -79,6 +95,11 @@ class CommentController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $cmtdel = Comment::find($id);
+        if($cmtdel->user_id == Auth::user()->id){
+            $cmtdel->delete();
+            return back()->with('info','Deleted');
+        }
+        return back()->with('error', 'Unauthorize to delete.');
     }
 }

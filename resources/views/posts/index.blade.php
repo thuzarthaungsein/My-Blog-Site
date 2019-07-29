@@ -4,23 +4,27 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-10">
-        <h3><a href="#">Posts</a></h3>
-            @foreach($posts as $post)        
-                    
-            <div class="panel panel-success">
-                <div class="panel-heading">{{ $post->title }}</div>
+        <h3>Posts <span class="badge">{{ $total }}</span></h3>
+        @if(session('info'))
+            <div class="alert alert-info">{{ session('info') }}</div>
+        @endif  
+      
+            @foreach($posts as $post)     
+            
+            <div class="panel panel-info">
+                <div class="panel-heading"><a href='{{ url("/posts/view/{$post->id}") }}'>{{ $post->title }}</a></div>
 
                 <div class="panel-body">
                     {{ $post->body }}
                 </div>
 
                 <div class="panel-footer">
-                    <small class="text-muted">Category &nbsp;
-                        <span>{{ $post->created_at->diffForHumans() }}</span> 
+                    <small class="text-muted"><span class="text-danger">{{ $post->category->name }}</span> &nbsp;
+                        <span>{{ $post->created_at->diffForHumans() }}</span> &nbsp;<i class="text-primary"> By {{ $post->user->name }}</i>
                         <span class="pull-right">
-                            <a href="{{ route('posts.edit', $post->id) }}"><span class="glyphicon glyphicon-edit"></span></a> &nbsp;
-                            <a href="#"><span class="glyphicon glyphicon-trash" style="color:red;"></span></a>
+                            <a href='{{ url("/posts/view/{$post->id}") }}'><span class="badge">{{ count($post->comments) }}</span> comment/s</a>
                         </span>
+                        
                     </small>
                 </div>
             </div>
